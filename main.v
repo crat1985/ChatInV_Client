@@ -20,8 +20,8 @@ fn main() {
 }
 
 fn listen_for_messages(mut socket &net.TcpConn) {
-	mut data := []u8{len: 1024}
 	for {
+		mut data := []u8{len: 1024}
 		socket.read(mut data) or {
 			eprintln(err)
 			break
