@@ -2,11 +2,14 @@ module main
 
 import net
 import os
+import time
 
 fn main() {
 	mut socket := net.dial_tcp("localhost:8888") or {
 		panic(err)
 	}
+
+	socket.set_read_timeout(time.infinite)
 
 	spawn listen_for_messages(mut socket)
 
