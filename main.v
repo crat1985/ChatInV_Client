@@ -17,7 +17,9 @@ struct App {
 	password_is_error bool
 	socket &net.TcpConn
 	addr string
-	port int
+	addr_is_error bool
+	port string
+	port_is_error bool
 }
 
 fn main() {
@@ -28,10 +30,13 @@ fn main() {
 		pseudo_is_error: true
 		password_text: ""
 		password_is_error: true
-		socket: 0
+		socket: &net.TcpConn{}
 		addr: ""
-		port: 0
+		addr_is_error: true
+		port: ""
+		port_is_error: true
 	}
+	println(app.window)
 
 	app.window = ui.window(
 		title: "Chat in V"
@@ -51,7 +56,7 @@ fn main() {
 						text: "Se connecter"
 						//text_align: .center
 						text_color: gx.rgb(255, 255, 255)
-						justify: [0.5, 0.5]
+						justify: ui.center
 						text_size: 22
 					)
 
@@ -68,10 +73,24 @@ fn main() {
 						is_password: true
 					)
 
+					ui.textbox(
+						placeholder: "localhost"
+						is_error: &app.addr_is_error
+						on_change: app.addr_changed
+					)
+
+					ui.textbox(
+						placeholder: "8888"
+						is_error: &app.port_is_error
+						on_change: app.port_changed
+						is_numeric: true
+					)
+
 					ui.button(
 						text: "Se connecter"
 						on_click: app.connect
 					)
+
 				]
 			)
 		]
@@ -81,11 +100,17 @@ fn main() {
 }
 
 fn (mut app App) connect(_ &ui.Button) {
-	if app.socket != 0 {
-		app.socket.close() or { panic(err) }
+	unsafe {
+		if app.socket != nil {
+			app.socket.close() or { ui.message_box(err.str()) }
+		}
 	}
 
-	app.socket = net.dial_tcp(app.addr) or { panic(err) }
+
+	app.socket = net.dial_tcp(app.addr) or {
+		ui.message_box(err.str())
+		return
+	}
 
 	app.socket.set_read_timeout(time.infinite)
 
@@ -121,6 +146,16 @@ fn (mut app App) pseudo_changed(it &ui.TextBox) {
 fn (mut app App) password_changed(it &ui.TextBox) {
 	app.password_text = it.text
 	app.password_is_error = app.password_text.len < 8
+}
+
+fn (mut app App) addr_changed(it &ui.TextBox) {
+	app.addr = it.text
+	app.addr_is_error = app.addr.len < 2
+}
+
+fn (mut app App) port_changed(it &ui.TextBox) {
+	app.port = it.text
+	app.port_is_error = app.port.len < 1
 }
 
 /*fn get_font_root_path() string {
