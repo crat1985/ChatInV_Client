@@ -10,33 +10,30 @@ import gx
 struct App {
 	mut:
 	window &ui.Window
-	pseudo_text_box &ui.TextBox
 	pseudo_text string
 	pseudo_is_error bool
 	password_text string
 	password_is_error bool
 	socket &net.TcpConn
 	addr string
-	addr_is_error bool
+	addr_placeholder string
 	port string
-	port_is_error bool
+	port_placeholder string
 }
 
 fn main() {
 	mut app := &App{
 		window: 0
-		pseudo_text_box: 0
 		pseudo_text: ""
 		pseudo_is_error: true
 		password_text: ""
 		password_is_error: true
 		socket: &net.TcpConn{}
 		addr: ""
-		addr_is_error: true
+		addr_placeholder: "localhost"
 		port: ""
-		port_is_error: true
+		port_placeholder: "8888"
 	}
-	println(app.window)
 
 	app.window = ui.window(
 		title: "Chat in V"
@@ -74,14 +71,12 @@ fn main() {
 					)
 
 					ui.textbox(
-						placeholder: "localhost"
-						is_error: &app.addr_is_error
+						placeholder: app.addr_placeholder
 						on_change: app.addr_changed
 					)
 
 					ui.textbox(
-						placeholder: "8888"
-						is_error: &app.port_is_error
+						placeholder: app.port_placeholder
 						on_change: app.port_changed
 						is_numeric: true
 					)
@@ -100,15 +95,22 @@ fn main() {
 }
 
 fn (mut app App) connect(_ &ui.Button) {
-	unsafe {
-		if app.socket != nil {
+	mut is_connected := true
+	app.socket.write([]u8{len: 1}) or { is_connected = false }
+	if is_connected {
+		confirm := ui.confirm("Veux-tu stopper toutes les autres connexions actives ?")
+		if confirm {
 			app.socket.close() or { ui.message_box(err.str()) }
 		}
 	}
 
+	mut addr := app.addr
+	if addr.is_blank() { addr = app.addr_placeholder }
+	mut port := app.port
+	if port.is_blank() { port = app.port_placeholder }
 
-	app.socket = net.dial_tcp(app.addr) or {
-		ui.message_box(err.str())
+	app.socket = net.dial_tcp("$addr:$port") or {
+		ui.message_box(err.msg())
 		return
 	}
 
@@ -150,27 +152,8 @@ fn (mut app App) password_changed(it &ui.TextBox) {
 
 fn (mut app App) addr_changed(it &ui.TextBox) {
 	app.addr = it.text
-	app.addr_is_error = app.addr.len < 2
 }
 
 fn (mut app App) port_changed(it &ui.TextBox) {
 	app.port = it.text
-	app.port_is_error = app.port.len < 1
 }
-
-/*fn get_font_root_path() string {
-	$if linux {
-		return "/usr/share/fonts/truetype/*"
-	}
-	$if macos {
-		return "/System/Library/Fonts/*"
-	}
-	$if windows {
-		return "C:/windows/fonts"
-	}
-}
-
-fn get_font_paths() []string {
-	font_dir := get_font_root_path()
-	return os.glob("$font_dir/*.ttf") or {panic(err)}
-}*/
