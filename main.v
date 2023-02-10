@@ -5,6 +5,7 @@ import os
 import time
 import ui
 import gx
+import crypto.sha256
 
 [heap]
 struct App {
@@ -95,8 +96,14 @@ fn main() {
 }
 
 fn (mut app App) connect(_ &ui.Button) {
+	if app.pseudo_is_error || app.password_is_error {
+		ui.message_box("Complete all fields !")
+		return
+	}
 	mut is_connected := true
-	app.socket.write([]u8{len: 1}) or { is_connected = false }
+	app.socket.write([]u8{len: 1}) or {
+		is_connected = false
+	}
 	if is_connected {
 		confirm := ui.confirm("Veux-tu stopper toutes les autres connexions actives ?")
 		if confirm {
@@ -116,8 +123,34 @@ fn (mut app App) connect(_ &ui.Button) {
 
 	app.socket.set_read_timeout(time.infinite)
 
+	is_error := app.send_credentials()
+
+	if is_error { return }
+
 	spawn app.listen_for_messages()
 
+	spawn app.send_messages()
+}
+
+fn (mut app App) send_credentials() bool {
+	password_hash := sha256.hexhash(app.password_text)
+	println("${app.pseudo_text.len:02}")
+	app.socket.write_string("${app.pseudo_text.len:02}${app.pseudo_text}${password_hash.len:02}$password_hash") or {
+		ui.message_box(err.msg())
+		return true
+	}
+	mut data := []u8{len: 1024}
+	length := app.socket.read(mut data) or {
+		ui.message_box(err.msg())
+		return true
+	}
+	data = data[..length]
+	ui.message_box(data.bytestr())
+
+	return false
+}
+
+fn (mut app App) send_messages() {
 	for {
 		data := os.input("")
 		app.socket.write_string(data) or {
@@ -147,7 +180,7 @@ fn (mut app App) pseudo_changed(it &ui.TextBox) {
 
 fn (mut app App) password_changed(it &ui.TextBox) {
 	app.password_text = it.text
-	app.password_is_error = app.password_text.len < 8
+	app.password_is_error = app.password_text.len < 3
 }
 
 fn (mut app App) addr_changed(it &ui.TextBox) {
