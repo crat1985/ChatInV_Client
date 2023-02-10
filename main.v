@@ -4,6 +4,7 @@ import net
 import os
 import time
 import ui
+import ui.component as uic
 import gx
 import crypto.sha256
 
@@ -47,6 +48,8 @@ fn main() {
 		children: [
 			ui.column(
 				id: "main_col"
+				margin_: 0
+				heights: ui.stretch
 				children: [
 					app.build_login_window()
 					app.build_chat_app()
@@ -58,8 +61,8 @@ fn main() {
 	ui.run(app.window)
 }
 
-fn (mut app App) init(it &ui.Window) {
-
+fn (mut app App) init(win &ui.Window) {
+	uic.hideable_show(win, "hform")
 }
 
 fn (mut app App) connect(_ &ui.Button) {
@@ -67,6 +70,7 @@ fn (mut app App) connect(_ &ui.Button) {
 		ui.message_box("Complete all fields !")
 		return
 	}
+
 	mut is_connected := true
 	app.socket.write([]u8{len: 1}) or {
 		is_connected = false
@@ -119,8 +123,9 @@ fn (mut app App) send_credentials() {
 			ui.message_box("Success : ${data.bytestr()}")
 			spawn app.listen_for_messages()
 			spawn app.send_messages()
-			mut s := app.window.get_or_panic[ui.Stack]('main_col')
-			s.set_children_depth(ui.z_index_hidden, 0)
+
+			uic.hideable_show(app.window, "hchat")
+			uic.hideable_toggle(app.window, "hform")
 			app.window.update_layout()
 		}
 		else {
@@ -172,58 +177,64 @@ fn (mut app App) port_changed(it &ui.TextBox) {
 }
 
 fn (mut app App) build_login_window() &ui.Stack {
-	return ui.column(
-		alignment: .center
-		margin_: 16
-		widths: ui.stretch
-		id: "form"
-		spacing: 16
-		children: [
-			ui.label(
-				text: "Login"
-				//text_align: .center
-				text_color: gx.rgb(255, 255, 255)
-				justify: ui.center
-				text_size: 22
-			)
+	return uic.hideable_stack(
+		id: "hform",
+		layout: ui.column(
+			alignment: .center
+			margin_: 16
+			widths: ui.stretch
+			spacing: 16
+			children: [
+				ui.label(
+					text: "Login"
+					//text_align: .center
+					text_color: gx.rgb(255, 255, 255)
+					justify: ui.center
+					text_size: 22
+				)
 
-			ui.textbox(
-				placeholder: "Username"
-				on_change: app.pseudo_changed
-				is_error: &app.pseudo_is_error
-			)
+				ui.textbox(
+					placeholder: "Username"
+					on_change: app.pseudo_changed
+					is_error: &app.pseudo_is_error
+				)
 
-			ui.textbox(
-				placeholder: "Password"
-				on_change: app.password_changed
-				is_error: &app.password_is_error
-				is_password: true
-			)
+				ui.textbox(
+					placeholder: "Password"
+					on_change: app.password_changed
+					is_error: &app.password_is_error
+					is_password: true
+				)
 
-			ui.textbox(
-				placeholder: app.addr_placeholder
-				on_change: app.addr_changed
-			)
+				ui.textbox(
+					placeholder: app.addr_placeholder
+					on_change: app.addr_changed
+				)
 
-			ui.textbox(
-				placeholder: app.port_placeholder
-				on_change: app.port_changed
-				is_numeric: true
-			)
+				ui.textbox(
+					placeholder: app.port_placeholder
+					on_change: app.port_changed
+					is_numeric: true
+				)
 
-			ui.button(
-				text: "Login"
-				on_click: app.connect
-			)
+				ui.button(
+					text: "Login"
+					on_click: app.connect
+				)
 
-		]
+			]
+		)
 	)
 }
 
 fn (mut app App) build_chat_app() &ui.Stack {
-	return ui.column(
-		children: [
-			ui.label(text: "Test")
-		]
+	return uic.hideable_stack(
+		id: "hchat",
+		layout: ui.column(
+			children: [
+				// ui.label(text: "Test")
+				ui.rectangle(height: 200, color: gx.yellow)
+			]
+		)
 	)
 }
