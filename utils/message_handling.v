@@ -1,15 +1,13 @@
 module utils
 
-import os
+import ui
 
-pub fn (mut app App) send_messages() {
-	for {
-		data := os.input("")
-		app.socket.write_string(data) or {
-			eprintln(err)
-			exit(-1)
-		}
+pub fn (mut app App) send_message(mut it &ui.TextBox) {
+	app.socket.write_string(it.text) or {
+		eprintln(err)
+		exit(-1)
 	}
+	app.send_message_text_box_placeholder = ""
 }
 
 pub fn (mut app App) listen_for_messages() {
@@ -19,7 +17,9 @@ pub fn (mut app App) listen_for_messages() {
 			eprintln(err)
 			break
 		}
-		print(data.bytestr())
+		msg := data.bytestr().trim_space()
+		app.messages_box_text += msg
+		print(msg)
 		flush_stdout()
 	}
 	exit(-1)

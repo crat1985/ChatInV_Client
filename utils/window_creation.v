@@ -18,6 +18,9 @@ pub struct App {
 	addr_placeholder string
 	port string
 	port_placeholder string
+
+	send_message_text_box_placeholder string
+	messages_box_text string
 }
 
 pub fn (mut app App) init(win &ui.Window) {
@@ -45,6 +48,7 @@ pub fn (mut app App) build_login_window() &ui.Stack {
 					placeholder: "Username"
 					on_change: app.pseudo_changed
 					is_error: &app.pseudo_is_error
+					on_enter: app.connect_textbox
 				)
 
 				ui.textbox(
@@ -52,17 +56,20 @@ pub fn (mut app App) build_login_window() &ui.Stack {
 					on_change: app.password_changed
 					is_error: &app.password_is_error
 					is_password: true
+					on_enter: app.connect_textbox
 				)
 
 				ui.textbox(
 					placeholder: app.addr_placeholder
 					on_change: app.addr_changed
+					on_enter: app.connect_textbox
 				)
 
 				ui.textbox(
 					placeholder: app.port_placeholder
 					on_change: app.port_changed
 					is_numeric: true
+					on_enter: app.connect_textbox
 				)
 
 				ui.button(
@@ -79,8 +86,22 @@ pub fn (mut app App) build_chat_app() &ui.Stack {
 	return uic.hideable_stack(
 		id: "hchat",
 		layout: ui.column(
+			margin_: 16
 			children: [
-
+				ui.column(
+					children: [
+						ui.textbox(
+							text: &app.messages_box_text
+							mode: .read_only | .multiline
+						)
+					]
+				)
+				ui.spacing()
+				ui.textbox(
+					text: &app.send_message_text_box_placeholder
+					placeholder: "Message"
+					on_enter: app.send_message
+				)
 			]
 		)
 	)

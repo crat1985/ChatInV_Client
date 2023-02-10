@@ -6,6 +6,10 @@ import time
 import crypto.sha256
 import net
 
+pub fn (mut app App) connect_textbox(_ &ui.TextBox) {
+	app.connect(&ui.Button{})
+}
+
 pub fn (mut app App) connect(_ &ui.Button) {
 	if app.pseudo_is_error || app.password_is_error {
 		ui.message_box("Complete all fields !")
@@ -63,7 +67,6 @@ pub fn (mut app App) send_credentials() {
 			data = data[1..]
 			ui.message_box("Success : ${data.bytestr()}")
 			spawn app.listen_for_messages()
-			spawn app.send_messages()
 
 			uic.hideable_show(app.window, "hchat")
 			uic.hideable_toggle(app.window, "hform")

@@ -1,7 +1,6 @@
 module main
 
 import net
-import os
 import ui
 import gx
 import utils
@@ -18,6 +17,9 @@ fn main() {
 		addr_placeholder: "localhost"
 		port: ""
 		port_placeholder: "8888"
+
+		send_message_text_box_placeholder: ''
+		messages_box_text: ''
 	}
 
 	app.window = ui.window(
