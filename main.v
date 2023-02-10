@@ -36,9 +36,31 @@ fn main() {
 		port_placeholder: "8888"
 	}
 
+	app.window = ui.window(
+		title: "Login"
+		mode: .resizable
+		//resizable: false
+		width: 360
+		height: 480
+		bg_color: gx.color_from_string("black")
+		on_init: app.init
+		children: [
+			ui.column(
+				children: [
+					app.build_login_window()
+					app.build_chat_app()
+				]
+			)
+		]
+	)
+
 	app.create_login_window()
 
 	ui.run(app.window)
+}
+
+fn (mut app App) init(it &ui.Window) {
+
 }
 
 fn (mut app App) connect(_ &ui.Button) {
@@ -69,26 +91,20 @@ fn (mut app App) connect(_ &ui.Button) {
 
 	app.socket.set_read_timeout(time.infinite)
 
-	is_error := app.send_credentials()
-
-	if is_error { return }
-
-	spawn app.listen_for_messages()
-
-	spawn app.send_messages()
+	app.send_credentials()
 }
 
-fn (mut app App) send_credentials() bool {
+fn (mut app App) send_credentials() {
 	password_hash := sha256.hexhash(app.password_text)
 	println("${app.pseudo_text.len:02}")
 	app.socket.write_string("${app.pseudo_text.len:02}${app.pseudo_text}${password_hash.len:02}$password_hash") or {
 		ui.message_box(err.msg())
-		return true
+		return
 	}
 	mut data := []u8{len: 1024}
 	length := app.socket.read(mut data) or {
 		ui.message_box(err.msg())
-		return true
+		return
 	}
 	data = data[..length]
 
@@ -102,14 +118,16 @@ fn (mut app App) send_credentials() bool {
 		'0' {
 			data = data[1..]
 			ui.message_box("Success : ${data.bytestr()}")
+			spawn app.listen_for_messages()
+			spawn app.send_messages()
+			app.create_chat_app()
+
 		}
 		else {
 			ui.message_box("Error while receiving server's response, this should never happens.\nReport it to the developer.")
-			return true
+			return
 		}
 	}
-
-	return false
 }
 
 fn (mut app App) send_messages() {
@@ -153,60 +171,59 @@ fn (mut app App) port_changed(it &ui.TextBox) {
 	app.port = it.text
 }
 
-fn (mut app App) create_login_window() {
-	app.window = ui.window(
-		title: "Chat in V"
-		mode: .resizable
-		//resizable: false
-		width: 360
-		height: 480
-		bg_color: gx.color_from_string("black")
+fn (mut app App) build_login_window() &ui.Stack {
+	return ui.column(
+		alignment: .center
+		margin_: 16
+		widths: ui.stretch
+		id: "form"
+		spacing: 16
 		children: [
-			ui.column(
-				alignment: .center
-				margin_: 16
-				widths: ui.stretch
-				spacing: 16
-				children: [
-					ui.label(
-						text: "Se connecter"
-						//text_align: .center
-						text_color: gx.rgb(255, 255, 255)
-						justify: ui.center
-						text_size: 22
-					)
-
-					ui.textbox(
-						placeholder: "Pseudo"
-						on_change: app.pseudo_changed
-						is_error: &app.pseudo_is_error
-					)
-
-					ui.textbox(
-						placeholder: "Mot de passe"
-						on_change: app.password_changed
-						is_error: &app.password_is_error
-						is_password: true
-					)
-
-					ui.textbox(
-						placeholder: app.addr_placeholder
-						on_change: app.addr_changed
-					)
-
-					ui.textbox(
-						placeholder: app.port_placeholder
-						on_change: app.port_changed
-						is_numeric: true
-					)
-
-					ui.button(
-						text: "Se connecter"
-						on_click: app.connect
-					)
-
-				]
+			ui.label(
+				text: "Login"
+				//text_align: .center
+				text_color: gx.rgb(255, 255, 255)
+				justify: ui.center
+				text_size: 22
 			)
+
+			ui.textbox(
+				placeholder: "Username"
+				on_change: app.pseudo_changed
+				is_error: &app.pseudo_is_error
+			)
+
+			ui.textbox(
+				placeholder: "Password"
+				on_change: app.password_changed
+				is_error: &app.password_is_error
+				is_password: true
+			)
+
+			ui.textbox(
+				placeholder: app.addr_placeholder
+				on_change: app.addr_changed
+			)
+
+			ui.textbox(
+				placeholder: app.port_placeholder
+				on_change: app.port_changed
+				is_numeric: true
+			)
+
+			ui.button(
+				text: "Login"
+				on_click: app.connect
+			)
+
+		]
+	)
+}
+
+fn (mut app App) build_chat_app() &ui.Stack {
+	return ui.column(
+		children: [
+			ui.label(text: "Test")
 		]
 	)
 }
