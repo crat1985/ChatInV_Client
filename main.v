@@ -36,6 +36,124 @@ fn main() {
 		port_placeholder: "8888"
 	}
 
+	app.create_login_window()
+
+	ui.run(app.window)
+}
+
+fn (mut app App) connect(_ &ui.Button) {
+	if app.pseudo_is_error || app.password_is_error {
+		ui.message_box("Complete all fields !")
+		return
+	}
+	mut is_connected := true
+	app.socket.write([]u8{len: 1}) or {
+		is_connected = false
+	}
+	if is_connected {
+		confirm := ui.confirm("Veux-tu stopper toutes les autres connexions actives ?")
+		if confirm {
+			app.socket.close() or { ui.message_box(err.str()) }
+		}
+	}
+
+	mut addr := app.addr
+	if addr.is_blank() { addr = app.addr_placeholder }
+	mut port := app.port
+	if port.is_blank() { port = app.port_placeholder }
+
+	app.socket = net.dial_tcp("$addr:$port") or {
+		ui.message_box(err.msg())
+		return
+	}
+
+	app.socket.set_read_timeout(time.infinite)
+
+	is_error := app.send_credentials()
+
+	if is_error { return }
+
+	spawn app.listen_for_messages()
+
+	spawn app.send_messages()
+}
+
+fn (mut app App) send_credentials() bool {
+	password_hash := sha256.hexhash(app.password_text)
+	println("${app.pseudo_text.len:02}")
+	app.socket.write_string("${app.pseudo_text.len:02}${app.pseudo_text}${password_hash.len:02}$password_hash") or {
+		ui.message_box(err.msg())
+		return true
+	}
+	mut data := []u8{len: 1024}
+	length := app.socket.read(mut data) or {
+		ui.message_box(err.msg())
+		return true
+	}
+	data = data[..length]
+
+	println(data[0].ascii_str())
+
+	match data[0].ascii_str() {
+		'1' {
+			data = data[1..]
+			ui.message_box(data.bytestr())
+		}
+		'0' {
+			data = data[1..]
+			ui.message_box("Success : ${data.bytestr()}")
+		}
+		else {
+			ui.message_box("Error while receiving server's response, this should never happens.\nReport it to the developer.")
+			return true
+		}
+	}
+
+	return false
+}
+
+fn (mut app App) send_messages() {
+	for {
+		data := os.input("")
+		app.socket.write_string(data) or {
+			eprintln(err)
+			exit(-1)
+		}
+	}
+}
+
+fn (mut app App) listen_for_messages() {
+	for {
+		mut data := []u8{len: 1024}
+		app.socket.read(mut data) or {
+			eprintln(err)
+			break
+		}
+		print(data.bytestr())
+		flush_stdout()
+	}
+	exit(-1)
+}
+
+fn (mut app App) pseudo_changed(it &ui.TextBox) {
+	app.pseudo_text = it.text
+	app.pseudo_is_error = app.pseudo_text.len < 3
+}
+
+fn (mut app App) password_changed(it &ui.TextBox) {
+	app.password_text = it.text
+	app.password_is_error = app.password_text.len < 3
+}
+
+fn (mut app App) addr_changed(it &ui.TextBox) {
+	app.addr = it.text
+}
+
+fn (mut app App) port_changed(it &ui.TextBox) {
+	app.port = it.text
+}
+
+fn (mut app App) create_login_window() {
 	app.window = ui.window(
 		title: "Chat in V"
 		mode: .resizable
@@ -91,102 +209,4 @@ fn main() {
 			)
 		]
 	)
-
-	ui.run(app.window)
-}
-
-fn (mut app App) connect(_ &ui.Button) {
-	if app.pseudo_is_error || app.password_is_error {
-		ui.message_box("Complete all fields !")
-		return
-	}
-	mut is_connected := true
-	app.socket.write([]u8{len: 1}) or {
-		is_connected = false
-	}
-	if is_connected {
-		confirm := ui.confirm("Veux-tu stopper toutes les autres connexions actives ?")
-		if confirm {
-			app.socket.close() or { ui.message_box(err.str()) }
-		}
-	}
-
-	mut addr := app.addr
-	if addr.is_blank() { addr = app.addr_placeholder }
-	mut port := app.port
-	if port.is_blank() { port = app.port_placeholder }
-
-	app.socket = net.dial_tcp("$addr:$port") or {
-		ui.message_box(err.msg())
-		return
-	}
-
-	app.socket.set_read_timeout(time.infinite)
-
-	is_error := app.send_credentials()
-
-	if is_error { return }
-
-	spawn app.listen_for_messages()
-
-	spawn app.send_messages()
-}
-
-fn (mut app App) send_credentials() bool {
-	password_hash := sha256.hexhash(app.password_text)
-	println("${app.pseudo_text.len:02}")
-	app.socket.write_string("${app.pseudo_text.len:02}${app.pseudo_text}${password_hash.len:02}$password_hash") or {
-		ui.message_box(err.msg())
-		return true
-	}
-	mut data := []u8{len: 1024}
-	length := app.socket.read(mut data) or {
-		ui.message_box(err.msg())
-		return true
-	}
-	data = data[..length]
-	ui.message_box(data.bytestr())
-
-	return false
-}
-
-fn (mut app App) send_messages() {
-	for {
-		data := os.input("")
-		app.socket.write_string(data) or {
-			eprintln(err)
-			exit(-1)
-		}
-	}
-}
-
-fn (mut app App) listen_for_messages() {
-	for {
-		mut data := []u8{len: 1024}
-		app.socket.read(mut data) or {
-			eprintln(err)
-			break
-		}
-		print(data.bytestr())
-		flush_stdout()
-	}
-	exit(-1)
-}
-
-fn (mut app App) pseudo_changed(it &ui.TextBox) {
-	app.pseudo_text = it.text
-	app.pseudo_is_error = app.pseudo_text.len < 3
-}
-
-fn (mut app App) password_changed(it &ui.TextBox) {
-	app.password_text = it.text
-	app.password_is_error = app.password_text.len < 3
-}
-
-fn (mut app App) addr_changed(it &ui.TextBox) {
-	app.addr = it.text
-}
-
-fn (mut app App) port_changed(it &ui.TextBox) {
-	app.port = it.text
 }
