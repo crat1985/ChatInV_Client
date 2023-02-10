@@ -54,8 +54,6 @@ fn main() {
 		]
 	)
 
-	app.create_login_window()
-
 	ui.run(app.window)
 }
 
@@ -120,7 +118,6 @@ fn (mut app App) send_credentials() {
 			ui.message_box("Success : ${data.bytestr()}")
 			spawn app.listen_for_messages()
 			spawn app.send_messages()
-			app.create_chat_app()
 
 		}
 		else {
