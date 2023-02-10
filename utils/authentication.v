@@ -72,6 +72,7 @@ pub fn (mut app App) send_credentials() {
 			uic.hideable_toggle(app.window, "hform")
 			app.window.mode = .max_size
 			app.window.update_layout()
+			app.window.set_title("Chat app")
 		}
 		else {
 			ui.message_box("Error while receiving server's response, this should never happens.\nReport it to the developer.")

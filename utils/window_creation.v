@@ -87,16 +87,12 @@ pub fn (mut app App) build_chat_app() &ui.Stack {
 		id: "hchat",
 		layout: ui.column(
 			margin_: 16
+			heights: [ui.stretch, ui.compact]
 			children: [
-				ui.column(
-					children: [
-						ui.textbox(
-							text: &app.messages_box_text
-							mode: .read_only | .multiline
-						)
-					]
+				ui.textbox(
+					text: &app.messages_box_text
+					mode: .read_only | .multiline
 				)
-				ui.spacing()
 				ui.textbox(
 					text: &app.send_message_text_box_placeholder
 					placeholder: "Message"

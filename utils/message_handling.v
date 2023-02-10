@@ -17,7 +17,7 @@ pub fn (mut app App) listen_for_messages() {
 			eprintln(err)
 			break
 		}
-		msg := data.bytestr().trim_space()
+		msg := "${data.bytestr().trim_space()}\n"
 		app.messages_box_text += msg
 		print(msg)
 		flush_stdout()
