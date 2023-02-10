@@ -46,6 +46,7 @@ fn main() {
 		on_init: app.init
 		children: [
 			ui.column(
+				id: "main_col"
 				children: [
 					app.build_login_window()
 					app.build_chat_app()
@@ -118,7 +119,9 @@ fn (mut app App) send_credentials() {
 			ui.message_box("Success : ${data.bytestr()}")
 			spawn app.listen_for_messages()
 			spawn app.send_messages()
-
+			mut s := app.window.get_or_panic[ui.Stack]('main_col')
+			s.set_children_depth(ui.z_index_hidden, 0)
+			app.window.update_layout()
 		}
 		else {
 			ui.message_box("Error while receiving server's response, this should never happens.\nReport it to the developer.")
