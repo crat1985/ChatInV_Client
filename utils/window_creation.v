@@ -92,6 +92,8 @@ pub fn (mut app App) build_chat_app() &ui.Stack {
 				ui.textbox(
 					text: &app.messages_box_text
 					mode: .read_only | .multiline
+					bg_color: gx.rgb(0, 0, 0)
+					text_color: gx.rgb(255, 255, 255)
 				)
 				ui.textbox(
 					text: &app.send_message_text_box_placeholder
