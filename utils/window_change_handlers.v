@@ -9,7 +9,12 @@ pub fn (mut app App) pseudo_changed(it &ui.TextBox) {
 
 pub fn (mut app App) password_changed(it &ui.TextBox) {
 	app.password_text = it.text
-	app.password_is_error = app.password_text.len < 3
+	app.password_is_error = app.password_text.len < 8
+}
+
+pub fn (mut app App) confirm_password_changed(it &ui.TextBox) {
+	app.confirm_password_text = it.text
+	app.confirm_password_is_error = app.password_text == app.confirm_password_text && !app.password_is_error
 }
 
 fn (mut app App) addr_changed(it &ui.TextBox) {

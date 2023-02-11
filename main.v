@@ -22,6 +22,8 @@ fn main() {
 		send_message_textbox_text: ''
 		messages_box: 0
 		messages_box_text: ''
+
+		mode: utils.Mode.login
 	}
 
 	app.window = ui.window(
@@ -34,7 +36,7 @@ fn main() {
 		children: [
 			ui.column(
 				id: "main_col"
-				margin_: 0
+				margin_: 16
 				heights: ui.stretch
 				children: [
 					app.build_login_window()

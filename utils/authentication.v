@@ -6,11 +6,11 @@ import time
 import crypto.sha256
 import net
 
-pub fn (mut app App) connect_textbox(_ &ui.TextBox) {
-	app.connect(&ui.Button{})
+pub fn (mut app App) login_or_register_textbox(_ &ui.TextBox) {
+	app.login_or_register(&ui.Button{})
 }
 
-pub fn (mut app App) connect(_ &ui.Button) {
+pub fn (mut app App) login_or_register(_ &ui.Button) {
 	if app.pseudo_is_error || app.password_is_error {
 		ui.message_box("Complete all fields !")
 		return
@@ -21,7 +21,7 @@ pub fn (mut app App) connect(_ &ui.Button) {
 		is_connected = false
 	}
 	if is_connected {
-		confirm := ui.confirm("Veux-tu stopper toutes les autres connexions actives ?")
+		confirm := ui.confirm("Do you want to stop all other connections ?")
 		if confirm {
 			app.socket.close() or { ui.message_box(err.str()) }
 		}
@@ -43,9 +43,17 @@ pub fn (mut app App) connect(_ &ui.Button) {
 }
 
 pub fn (mut app App) send_credentials() {
+	mut prefix := match app.mode {
+		.register {
+			"r"
+		}
+		.login {
+			"l"
+		}
+	}
 	password_hash := sha256.hexhash(app.password_text)
 	println("${app.pseudo_text.len:02}")
-	app.socket.write_string("${app.pseudo_text.len:02}${app.pseudo_text}${password_hash.len:02}$password_hash") or {
+	app.socket.write_string("$prefix${app.pseudo_text.len:02}${app.pseudo_text}${password_hash.len:02}$password_hash") or {
 		ui.message_box(err.msg())
 		return
 	}
@@ -70,7 +78,6 @@ pub fn (mut app App) send_credentials() {
 
 			uic.hideable_show(app.window, "hchat")
 			uic.hideable_toggle(app.window, "hform")
-			app.window.mode = .max_size
 			app.window.update_layout()
 			app.window.set_title("Chat app")
 		}
