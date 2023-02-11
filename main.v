@@ -18,10 +18,10 @@ fn main() {
 		port: ""
 		port_placeholder: "8888"
 
-		send_message_textbox_text: ''
-		messages_box_text: ''
-		messages_box: 0
 		send_message_textbox: 0
+		send_message_textbox_text: ''
+		messages_box: 0
+		messages_box_text: ''
 	}
 
 	app.window = ui.window(
