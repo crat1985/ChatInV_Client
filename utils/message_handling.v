@@ -7,7 +7,8 @@ pub fn (mut app App) send_message(mut it &ui.TextBox) {
 		eprintln(err)
 		exit(-1)
 	}
-	app.send_message_text_box_placeholder = ""
+	app.send_message_text_box_text = ""
+	app.message_textbox.tv.do_logview()
 }
 
 pub fn (mut app App) listen_for_messages() {

@@ -18,9 +18,17 @@ fn main() {
 		port: ""
 		port_placeholder: "8888"
 
-		send_message_text_box_placeholder: ''
+		send_message_text_box_text: ''
 		messages_box_text: ''
+		message_textbox: 0
+		send_message_textbox: 0
 	}
+
+	app.send_message_textbox = ui.textbox(
+		text: &app.send_message_text_box_text
+		placeholder: "Message"
+		on_enter: app.send_message
+	)
 
 	app.window = ui.window(
 		title: "Login"

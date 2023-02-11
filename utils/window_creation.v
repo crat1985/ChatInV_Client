@@ -19,7 +19,9 @@ pub struct App {
 	port string
 	port_placeholder string
 
-	send_message_text_box_placeholder string
+	message_textbox &ui.TextBox
+	send_message_textbox &ui.TextBox
+	send_message_text_box_text string
 	messages_box_text string
 }
 
@@ -83,23 +85,25 @@ pub fn (mut app App) build_login_window() &ui.Stack {
 }
 
 pub fn (mut app App) build_chat_app() &ui.Stack {
+	app.message_textbox = ui.textbox(
+		text: &app.messages_box_text
+		mode: .read_only | .multiline
+		bg_color: gx.rgb(0, 0, 0)
+		text_color: gx.rgb(255, 255, 255)
+	)
+	app.send_message_textbox = ui.textbox(
+		text: &app.send_message_text_box_text
+		placeholder: "Message"
+		on_enter: app.send_message
+	)
 	return uic.hideable_stack(
 		id: "hchat",
 		layout: ui.column(
 			margin_: 16
 			heights: [ui.stretch, ui.compact]
 			children: [
-				ui.textbox(
-					text: &app.messages_box_text
-					mode: .read_only | .multiline
-					bg_color: gx.rgb(0, 0, 0)
-					text_color: gx.rgb(255, 255, 255)
-				)
-				ui.textbox(
-					text: &app.send_message_text_box_placeholder
-					placeholder: "Message"
-					on_enter: app.send_message
-				)
+				app.message_textbox
+				app.send_message_textbox
 			]
 		)
 	)
