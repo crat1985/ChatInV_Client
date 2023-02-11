@@ -79,6 +79,7 @@ pub fn (mut app App) build_login_window() &ui.Stack {
 						children: [
 							ui.textbox(
 								on_change: app.confirm_password_changed
+								on_enter: app.login_or_register_textbox
 								is_error: &app.confirm_password_is_error
 								is_password: true
 								placeholder: "Confirm password"
