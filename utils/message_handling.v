@@ -7,8 +7,8 @@ pub fn (mut app App) send_message(mut it &ui.TextBox) {
 		eprintln(err)
 		exit(-1)
 	}
-	app.send_message_text_box_text = ""
-	app.message_textbox.tv.do_logview()
+	app.send_message_textbox_text = ""
+	app.messages_box.tv.do_logview()
 }
 
 pub fn (mut app App) listen_for_messages() {

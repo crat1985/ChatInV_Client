@@ -19,10 +19,10 @@ pub struct App {
 	port string
 	port_placeholder string
 
-	message_textbox &ui.TextBox
-	send_message_textbox &ui.TextBox
-	send_message_text_box_text string
+	messages_box &ui.TextBox
 	messages_box_text string
+	send_message_textbox &ui.TextBox
+	send_message_textbox_text string
 }
 
 pub fn (mut app App) init(win &ui.Window) {
@@ -40,7 +40,6 @@ pub fn (mut app App) build_login_window() &ui.Stack {
 			children: [
 				ui.label(
 					text: "Login"
-					//text_align: .center
 					text_color: gx.rgb(255, 255, 255)
 					justify: ui.center
 					text_size: 22
@@ -85,14 +84,14 @@ pub fn (mut app App) build_login_window() &ui.Stack {
 }
 
 pub fn (mut app App) build_chat_app() &ui.Stack {
-	app.message_textbox = ui.textbox(
+	app.messages_box = ui.textbox(
 		text: &app.messages_box_text
 		mode: .read_only | .multiline
 		bg_color: gx.rgb(0, 0, 0)
 		text_color: gx.rgb(255, 255, 255)
 	)
 	app.send_message_textbox = ui.textbox(
-		text: &app.send_message_text_box_text
+		text: &app.send_message_textbox_text
 		placeholder: "Message"
 		on_enter: app.send_message
 	)
@@ -102,7 +101,7 @@ pub fn (mut app App) build_chat_app() &ui.Stack {
 			margin_: 16
 			heights: [ui.stretch, ui.compact]
 			children: [
-				app.message_textbox
+				app.messages_box
 				app.send_message_textbox
 			]
 		)
