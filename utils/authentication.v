@@ -77,13 +77,13 @@ pub fn (mut app App) send_credentials() {
 		return
 	}
 
-	match msg[0] {
-		'1'.u8() {
+	match msg[0].ascii_str() {
+		'1' {
 			ui.message_box(msg[1..length])
+			return
 		}
-		'0'.u8() {
+		'0' {
 			ui.message_box("Success : ${msg[1..length]}")
-			spawn app.listen_for_messages()
 
 			uic.hideable_show(app.window, "hchat")
 			uic.hideable_toggle(app.window, "hform")
@@ -101,4 +101,5 @@ pub fn (mut app App) send_credentials() {
 	}
 	msg = msg[..length+1]
 	app.display_messages(msg)
+	spawn app.listen_for_messages()
 }
