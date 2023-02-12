@@ -58,22 +58,31 @@ pub fn (mut app App) send_credentials() {
 		return
 	}
 	mut data := []u8{len: 1024}
-	length := app.socket.read(mut data) or {
+	mut length := app.socket.read(mut data) or {
 		ui.message_box(err.msg())
 		return
 	}
 	data = data[..length]
+	mut msg := data.bytestr()
 
-	println(data[0].ascii_str())
+	if msg.len < 6 {
+		eprintln("[LOG] Msg received too short : $msg")
+		return
+	}
 
-	match data[0].ascii_str() {
+	length = msg[..5]
+	msg = msg[5..]
+	if msg.len < length {
+		eprintln("[LOG] Invalid message, this should never happen, report it to the developer : $msg")
+		return
+	}
+
+	match msg[0] {
 		'1' {
-			data = data[1..]
-			ui.message_box(data.bytestr())
+			ui.message_box(msg[1..length].bytestr())
 		}
 		'0' {
-			data = data[1..]
-			ui.message_box("Success : ${data.bytestr()}")
+			ui.message_box("Success : ${msg[1..length]}")
 			spawn app.listen_for_messages()
 
 			uic.hideable_show(app.window, "hchat")
@@ -86,4 +95,10 @@ pub fn (mut app App) send_credentials() {
 			return
 		}
 	}
+
+	if msg.len == length {
+		return
+	}
+	msg = msg[..length+1]
+	app.display_messages(msg)
 }
