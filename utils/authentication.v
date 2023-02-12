@@ -70,7 +70,7 @@ pub fn (mut app App) send_credentials() {
 		return
 	}
 
-	length = msg[..5]
+	length = msg[..5].int()
 	msg = msg[5..]
 	if msg.len < length {
 		eprintln("[LOG] Invalid message, this should never happen, report it to the developer : $msg")
@@ -78,10 +78,10 @@ pub fn (mut app App) send_credentials() {
 	}
 
 	match msg[0] {
-		'1' {
-			ui.message_box(msg[1..length].bytestr())
+		'1'.u8() {
+			ui.message_box(msg[1..length])
 		}
-		'0' {
+		'0'.u8() {
 			ui.message_box("Success : ${msg[1..length]}")
 			spawn app.listen_for_messages()
 
