@@ -53,37 +53,37 @@ pub fn (mut app App) send_credentials() {
 	}
 	password_hash := sha256.hexhash(app.password_text)
 	println("${app.pseudo_text.len:02}")
-	app.socket.write_string("$prefix${app.pseudo_text.len:02}${app.pseudo_text}${password_hash.len:02}$password_hash") or {
+	app.send_string("$prefix${app.pseudo_text.len:02}${app.pseudo_text}${password_hash.len:02}$password_hash") or {
 		ui.message_box(err.msg())
 		return
 	}
-	mut data := []u8{len: 1024}
-	mut length := app.socket.read(mut data) or {
+	mut all_data := []u8{len: 1024}
+	mut length := app.socket.read(mut all_data) or {
 		ui.message_box(err.msg())
 		return
 	}
-	data = data[..length]
-	mut msg := data.bytestr()
+	all_data = all_data[..length]
+	mut data := all_data.bytestr()
 
-	if msg.len < 6 {
-		eprintln("[LOG] Msg received too short : $msg")
+	if data.len < 6 {
+		eprintln("[LOG] Msg received too short : $data")
 		return
 	}
 
-	length = msg[..5].int()
-	msg = msg[5..]
-	if msg.len < length {
-		eprintln("[LOG] Invalid message, this should never happen, report it to the developer : $msg")
+	length = data[..5].int()
+	data = data[5..]
+	if data.len < length {
+		eprintln("[LOG] Invalid message, this should never happen, report it to the developer : $data")
 		return
 	}
 
-	match msg[0].ascii_str() {
+	match data[0].ascii_str() {
 		'1' {
-			ui.message_box(msg[1..length])
+			ui.message_box(data[1..length])
 			return
 		}
 		'0' {
-			ui.message_box("Success : ${msg[1..length]}")
+			ui.message_box("Success : ${data[1..length]}")
 
 			uic.hideable_show(app.window, "hchat")
 			uic.hideable_toggle(app.window, "hform")
@@ -96,10 +96,10 @@ pub fn (mut app App) send_credentials() {
 		}
 	}
 
-	if msg.len == length {
+	if data.len == length {
 		return
 	}
-	msg = msg[..length+1]
-	app.display_messages(msg)
+	data = data[..length+1]
+	app.display_messages(data)
 	spawn app.listen_for_messages()
 }

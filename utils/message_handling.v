@@ -3,7 +3,7 @@ module utils
 import ui
 
 pub fn (mut app App) send_message(mut it &ui.TextBox) {
-	app.send_string(it.text.str()) or {
+	app.send_string(it.text.bytes().bytestr()) or {
 		eprintln(err)
 		exit(-1)
 	}
@@ -12,7 +12,7 @@ pub fn (mut app App) send_message(mut it &ui.TextBox) {
 }
 
 pub fn (mut app App) send_string(data string) !int {
-	return app.socket.write_string("${data.len}$data")
+	return app.socket.write_string("${data.len:05}$data")
 }
 
 pub fn (mut app App) listen_for_messages() {
@@ -22,9 +22,8 @@ pub fn (mut app App) listen_for_messages() {
 			eprintln(err)
 			break
 		}
-		mut msg := data.bytestr()
 
-		app.display_messages(msg)
+		app.display_messages(data.bytestr())
 	}
 	exit(-1)
 }

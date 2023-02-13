@@ -24,6 +24,9 @@ fn main() {
 		messages_box_text: ''
 
 		mode: utils.Mode.login
+		username_textbox: 0
+		confirm_password_text: ''
+		confirm_password_is_error: true
 	}
 
 	app.window = ui.window(
