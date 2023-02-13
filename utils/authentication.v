@@ -52,7 +52,6 @@ pub fn (mut app App) send_credentials() {
 		}
 	}
 	password_hash := sha256.hexhash(app.password_text)
-	println("${app.pseudo_text.len:02}")
 	app.send_string("$prefix${app.pseudo_text.len:02}${app.pseudo_text}${password_hash.len:02}$password_hash") or {
 		ui.message_box(err.msg())
 		return
@@ -83,7 +82,7 @@ pub fn (mut app App) send_credentials() {
 			return
 		}
 		'0' {
-			ui.message_box("Success : ${data[1..length]}")
+			ui.message_box("Success : ${data[1..length-1]}")
 
 			uic.hideable_show(app.window, "hchat")
 			uic.hideable_toggle(app.window, "hform")
@@ -99,7 +98,7 @@ pub fn (mut app App) send_credentials() {
 	if data.len == length {
 		return
 	}
-	data = data[..length+1]
+	data = data[length..]
 	app.display_messages(data)
 	spawn app.listen_for_messages()
 }

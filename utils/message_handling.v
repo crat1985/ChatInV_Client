@@ -16,14 +16,14 @@ pub fn (mut app App) send_string(data string) !int {
 }
 
 pub fn (mut app App) listen_for_messages() {
+	println("cool")
 	for {
 		mut data := []u8{len: 1024}
-		app.socket.read(mut data) or {
+		length := app.socket.read(mut data) or {
 			eprintln(err)
 			break
 		}
-
-		app.display_messages(data.bytestr())
+		app.display_messages(data[..length].bytestr())
 	}
 	exit(-1)
 }
@@ -33,7 +33,7 @@ pub fn (mut app App) display_messages(message string) {
 	for {
 		if msg.len < 6 {
 			eprintln("[LOG] Msg received too short : $msg")
-			continue
+			break
 		}
 		length := msg[..5].int()
 		msg = msg[5..]
@@ -41,9 +41,9 @@ pub fn (mut app App) display_messages(message string) {
 			eprintln("[LOG] Invalid message : $msg")
 			break
 		}
-		msg = msg[..length]
-		app.messages_box_text += "$msg\n"
-		println(msg)
+		msg_temp := msg[..length]
+		app.messages_box_text += "$msg_temp\n"
+		println(msg_temp)
 		if msg.len == length {
 			break
 		}
