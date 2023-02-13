@@ -56,6 +56,7 @@ pub fn (mut app App) build_login_window() &ui.Stack {
 			spacing: 16
 			children: [
 				ui.label(
+					id: "form_title"
 					text: "Login"
 					text_color: gx.rgb(255, 255, 255)
 					justify: ui.center
@@ -132,6 +133,8 @@ pub fn (mut app App) register_button_pressed(it &ui.Button) {
 			app.mode = .register
 			app.window.get_or_panic[ui.Button]("login_button").text = "Login ?"
 			app.window.get_or_panic[ui.Button]("register_button").text = "Register"
+			app.window.get_or_panic[ui.Label]("form_title").text = "Register"
+			app.window.set_title("Register")
 			uic.hideable_show(app.window, "confirm_password_textbox")
 		}
 		.register {
@@ -149,6 +152,8 @@ pub fn (mut app App) login_button_pressed(it &ui.Button) {
 			app.mode = .login
 			app.window.get_or_panic[ui.Button]("login_button").text = "Login"
 			app.window.get_or_panic[ui.Button]("register_button").text = "Register ?"
+			app.window.get_or_panic[ui.Label]("form_title").text = "Login"
+			app.window.set_title("Login")
 			uic.hideable_toggle(app.window, "confirm_password_textbox")
 		}
 	}

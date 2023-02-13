@@ -16,7 +16,6 @@ pub fn (mut app App) send_string(data string) !int {
 }
 
 pub fn (mut app App) listen_for_messages() {
-	println("cool")
 	for {
 		mut data := []u8{len: 1024}
 		length := app.socket.read(mut data) or {
