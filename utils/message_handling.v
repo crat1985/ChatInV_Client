@@ -19,8 +19,7 @@ pub fn (mut app App) listen_for_messages() {
 	for {
 		mut data := []u8{len: 1024}
 		length := app.socket.read(mut data) or {
-			eprintln(err)
-			break
+			panic(err)
 		}
 		app.display_messages(data[..length].bytestr())
 	}

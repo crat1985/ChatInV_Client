@@ -104,10 +104,11 @@ pub fn (mut app App) send_credentials() {
 		}
 	}
 
+	spawn app.listen_for_messages()
+
 	if data.len == length {
 		return
 	}
 	//sending end of the message
 	app.display_messages(data[length..])
-	spawn app.listen_for_messages()
 }
