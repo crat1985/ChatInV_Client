@@ -56,7 +56,7 @@ pub fn (mut app App) send_credentials() {
 	}
 	password_hash := sha256.hexhash(app.password_text)
 	//send credentials
-	app.send_string("$prefix${app.pseudo_text.len:02}${app.pseudo_text}${password_hash.len:02}$password_hash") or {
+	app.send_string("$prefix${app.pseudo_text.len:02}${app.pseudo_text}$password_hash") or {
 		ui.message_box(err.msg())
 		return
 	}
