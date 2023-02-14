@@ -162,7 +162,7 @@ pub fn (mut app App) login_button_pressed(it &ui.Button) {
 pub fn (mut app App) build_chat_app() &ui.Stack {
 	app.messages_box = ui.textbox(
 		text: &app.messages_box_text
-		mode: .read_only | .multiline
+		mode: .read_only | .multiline | .word_wrap
 		bg_color: gx.rgb(0, 0, 0)
 		text_color: gx.rgb(255, 255, 255)
 	)
