@@ -31,7 +31,6 @@ fn main() {
 
 	app.window = ui.window(
 		title: "Login"
-		mode: .resizable
 		bg_color: gx.color_from_string("black")
 		on_init: app.init
 		width: 300

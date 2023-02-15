@@ -25,16 +25,20 @@ pub fn (mut app App) login_or_register(_ &ui.Button) {
 		if ui.confirm("Do you want to stop all other connections ?") {
 			app.socket.close() or {
 				ui.message_box(err.msg())
-				return
 			}
 		}
+		return
 	}
 	addr := if app.addr.is_blank() {
 		app.addr_placeholder
-	} else { app.addr }
+	} else {
+		app.addr
+	}
 	port := if app.port.is_blank() {
 		app.port_placeholder
-	} else { app.port }
+	} else {
+		app.port
+	}
 
 	app.socket = net.dial_tcp("$addr:$port") or {
 		ui.message_box(err.msg())
@@ -67,19 +71,26 @@ pub fn (mut app App) send_credentials() {
 		return
 	}
 	//remove null bytes
-	bytes_data = bytes_data[..length]
+	bytes_data = bytes_data#[..length]
+	if bytes_data.len == 0 {
+		eprintln("[ERROR] Bad data received !")
+		return
+	}
 	//converting to string
 	mut data := bytes_data.bytestr()
 
-	if data.len < 6 {
-		eprintln("[LOG] Msg received too short : $data")
+	length = data[..5]#.int()
+	if length == 0 {
+		eprintln("[ERROR] Bad length !")
 		return
 	}
-
-	length = data[..5].int()
-	data = data[5..]
+	data = data#[5..]
+	if data.len == 0 {
+		eprintln("[ERROR] Bad length !")
+		return
+	}
 	if data.len < length {
-		eprintln("[LOG] Invalid message, this should never happen, report it to the developer : `$data`")
+		eprintln("[ERROR] Invalid message, this should never happen, report it to the developer : `$data`")
 		return
 	}
 
