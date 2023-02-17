@@ -4,10 +4,14 @@ import net
 import ui
 import ui.component as uic
 import gx
+import libsodium
 
 [heap]
 pub struct App {
 	pub mut:
+	private_key libsodium.PrivateKey
+	session_key []u8
+	box libsodium.Box
 	//login win
 	window &ui.Window
 	username_textbox &ui.TextBox

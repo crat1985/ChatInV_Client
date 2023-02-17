@@ -4,9 +4,12 @@ import net
 import ui
 import gx
 import utils
+import libsodium
 
 fn main() {
 	mut app := &utils.App{
+		private_key: libsodium.new_private_key()
+		box: libsodium.Box{}
 		window: 0
 		pseudo_text: ""
 		pseudo_is_error: true
