@@ -79,7 +79,7 @@ pub fn (mut app App) send_credentials() {
 	//converting to string
 	mut data := bytes_data.bytestr()
 
-	length = data[..5]#.int()
+	length = data#[..5].int()
 	if length == 0 {
 		eprintln("[ERROR] Bad length !")
 		return
