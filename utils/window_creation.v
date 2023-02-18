@@ -11,7 +11,6 @@ pub struct App {
 	pub mut:
 	private_key libsodium.PrivateKey
 	session_key []u8
-	box libsodium.Box
 	//login win
 	window &ui.Window
 	username_textbox &ui.TextBox

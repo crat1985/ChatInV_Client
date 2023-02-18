@@ -47,32 +47,32 @@ pub fn (mut app App) login_or_register(_ &ui.Button) {
 	}
 	app.socket.set_read_timeout(time.infinite)
 
-	app.get_public_key()
-
-	app.get_session_key()
+	app.setup_encryption()
 
 	app.send_credentials()
 }
 
-pub fn (mut app App) get_public_key() {
+pub fn (mut app App) setup_encryption() {
 	mut public_key := []u8{len: 32}
 	app.socket.read(mut public_key) or {
 		panic(err)
 	}
 	println(public_key.hex())
-	app.box = libsodium.new_box(app.private_key, public_key)
+	box := libsodium.new_box(app.private_key, public_key)
 	app.socket.write(app.private_key.public_key) or {
 		panic(err)
 	}
-}
 
-pub fn (mut app App) get_session_key() {
 	mut encrypted_session_key := []u8{len: 1024}
 	length := app.socket.read(mut encrypted_session_key) or {
 		panic(err)
 	}
 	encrypted_session_key = encrypted_session_key[..length]
-	app.session_key = app.box.decrypt(encrypted_session_key)
+	decrypted := box.decrypt(encrypted_session_key)
+	if decrypted.hex().is_blank() {
+		panic("Decrypted key is blank : $decrypted")
+	}
+	app.session_key = decrypted
 }
 
 pub fn (mut app App) send_credentials() {
