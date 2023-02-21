@@ -3,7 +3,7 @@ module utils
 import ui
 
 pub fn (mut app App) send_message(mut it &ui.TextBox) {
-	app.send_string(it.text.bytes().bytestr()) or {
+	app.send_encrypted_string(it.text.bytes().bytestr()) or {
 		eprintln(err)
 		exit(-1)
 	}
@@ -11,8 +11,8 @@ pub fn (mut app App) send_message(mut it &ui.TextBox) {
 	app.messages_box.tv.do_logview()
 }
 
-pub fn (mut app App) send_string(data string) !int {
-	return app.socket.write_string("${data.len:05}$data")
+pub fn (mut app App) send_encrypted_string(data string) !int {
+	return app.socket.write(app.encrypt_string("${data.len:05}$data"))
 }
 
 pub fn (mut app App) listen_for_messages() {
@@ -21,7 +21,8 @@ pub fn (mut app App) listen_for_messages() {
 		length := app.socket.read(mut data) or {
 			panic(err)
 		}
-		app.display_messages(data[..length].bytestr())
+		app.display_messages(app.decrypt_string(data[..length]) or {continue})
+		app.messages_box.tv.do_logview()
 	}
 	exit(-1)
 }
@@ -40,6 +41,9 @@ pub fn (mut app App) display_messages(message string) {
 			break
 		}
 		msg_temp := msg[..length]
+		if msg_temp.is_blank() {
+			break
+		}
 		app.messages_box_text += "$msg_temp\n"
 		println(msg_temp)
 		if msg.len == length {

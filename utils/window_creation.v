@@ -1,44 +1,8 @@
 module utils
 
-import net
 import ui
 import ui.component as uic
 import gx
-import libsodium
-
-[heap]
-pub struct App {
-	pub mut:
-	private_key libsodium.PrivateKey
-	session_key []u8
-	//login win
-	window &ui.Window
-	username_textbox &ui.TextBox
-	pseudo_text string
-	pseudo_is_error bool
-	password_text string
-	password_is_error bool
-	socket &net.TcpConn
-	addr string
-	addr_placeholder string
-	port string
-	port_placeholder string
-
-	//chat win
-	messages_box &ui.TextBox
-	messages_box_text string
-	send_message_textbox &ui.TextBox
-	send_message_textbox_text string
-
-	mode Mode
-	confirm_password_text string
-	confirm_password_is_error bool
-}
-
-pub enum Mode {
-	login
-	register
-}
 
 pub fn (mut app App) init(win &ui.Window) {
 	uic.hideable_show(win, "hform")

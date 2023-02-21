@@ -3,7 +3,6 @@ module utils
 import ui
 import ui.component as uic
 import time
-import crypto.sha256
 import net
 import libsodium
 
@@ -16,18 +15,6 @@ pub fn (mut app App) login_or_register(_ &ui.Button) {
 	}
 	if app.confirm_password_is_error && app.mode==Mode.register {
 		ui.message_box("Confirm password and password don't match !")
-		return
-	}
-	mut is_connected := true
-	app.socket.write([]u8{len: 1}) or {
-		is_connected = false
-	}
-	if is_connected {
-		if ui.confirm("Do you want to stop all other connections ?") {
-			app.socket.close() or {
-				ui.message_box(err.msg())
-			}
-		}
 		return
 	}
 	addr := if app.addr.is_blank() {
@@ -57,22 +44,11 @@ pub fn (mut app App) setup_encryption() {
 	app.socket.read(mut public_key) or {
 		panic(err)
 	}
-	println(public_key.hex())
-	box := libsodium.new_box(app.private_key, public_key)
+
+	app.box = libsodium.new_box(app.private_key, public_key)
 	app.socket.write(app.private_key.public_key) or {
 		panic(err)
 	}
-
-	mut encrypted_session_key := []u8{len: 1024}
-	length := app.socket.read(mut encrypted_session_key) or {
-		panic(err)
-	}
-	encrypted_session_key = encrypted_session_key[..length]
-	decrypted := box.decrypt(encrypted_session_key)
-	if decrypted.hex().is_blank() {
-		panic("Decrypted key is blank : $decrypted")
-	}
-	app.session_key = decrypted
 }
 
 pub fn (mut app App) send_credentials() {
@@ -84,9 +60,8 @@ pub fn (mut app App) send_credentials() {
 			"l"
 		}
 	}
-	password_hash := sha256.hexhash(app.password_text)
 	//send credentials
-	app.send_string("$prefix${app.pseudo_text.len:02}${app.pseudo_text}$password_hash") or {
+	app.send_encrypted_string("$prefix${app.pseudo_text.len:02}${app.pseudo_text}${app.password_text.len:02}${app.password_text}") or {
 		ui.message_box(err.msg())
 		return
 	}
@@ -103,16 +78,19 @@ pub fn (mut app App) send_credentials() {
 		return
 	}
 	//converting to string
-	mut data := bytes_data.bytestr()
+	mut data := app.decrypt_string(bytes_data) or {
+		ui.message_box(err.msg())
+		return
+	}
 
 	length = data#[..5].int()
 	if length == 0 {
-		eprintln("[ERROR] Bad length !")
+		dump("[ERROR] Bad length !")
 		return
 	}
 	data = data#[5..]
 	if data.len == 0 {
-		eprintln("[ERROR] Bad length !")
+		dump("[ERROR] Bad length !")
 		return
 	}
 	if data.len < length {
