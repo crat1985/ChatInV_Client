@@ -17,6 +17,7 @@ pub fn (mut app App) login_or_register(_ &ui.Button) {
 		ui.message_box("Confirm password and password don't match !")
 		return
 	}
+
 	addr := if app.addr.is_blank() {
 		app.addr_placeholder
 	} else {
@@ -41,9 +42,10 @@ pub fn (mut app App) login_or_register(_ &ui.Button) {
 
 pub fn (mut app App) setup_encryption() {
 	mut public_key := []u8{len: 32}
-	app.socket.read(mut public_key) or {
+	length := app.socket.read(mut public_key) or {
 		panic(err)
 	}
+	public_key = public_key[..length]
 
 	app.box = libsodium.new_box(app.private_key, public_key)
 	app.socket.write(app.private_key.public_key) or {
@@ -65,20 +67,20 @@ pub fn (mut app App) send_credentials() {
 		ui.message_box(err.msg())
 		return
 	}
-	mut bytes_data := []u8{len: 1024}
+	mut server_response := []u8{len: 1024}
 	//listen for server's response
-	mut length := app.socket.read(mut bytes_data) or {
+	mut length := app.socket.read(mut server_response) or {
 		ui.message_box(err.msg())
 		return
 	}
 	//remove null bytes
-	bytes_data = bytes_data#[..length]
-	if bytes_data.len == 0 {
+	server_response = server_response#[..length]
+	if server_response.len == 0 {
 		eprintln("[ERROR] Bad data received !")
 		return
 	}
 	//converting to string
-	mut data := app.decrypt_string(bytes_data) or {
+	mut data := app.decrypt_string(server_response) or {
 		ui.message_box(err.msg())
 		return
 	}
@@ -119,11 +121,12 @@ pub fn (mut app App) send_credentials() {
 		}
 	}
 
-	spawn app.listen_for_messages()
-
-	if data.len == length {
-		return
+	//showing end of the message
+	data = data#[length..]
+	if data.len > 6 {
+		app.display_messages(data)
 	}
-	//sending end of the message
-	app.display_messages(data[length..])
+	
+
+	spawn app.listen_for_messages()
 }

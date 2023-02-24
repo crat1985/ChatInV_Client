@@ -21,7 +21,10 @@ pub fn (mut app App) listen_for_messages() {
 		length := app.socket.read(mut data) or {
 			panic(err)
 		}
-		app.display_messages(app.decrypt_string(data[..length]) or {continue})
+		app.display_messages(app.decrypt_string(data[..length]) or {
+			eprint("Couldn't decrypt message : $err")
+			continue
+		})
 		app.messages_box.tv.do_logview()
 	}
 	exit(-1)
@@ -42,7 +45,8 @@ pub fn (mut app App) display_messages(message string) {
 		}
 		msg_temp := msg[..length]
 		if msg_temp.is_blank() {
-			break
+			msg = msg[length..]
+			continue
 		}
 		app.messages_box_text += "$msg_temp\n"
 		println(msg_temp)
