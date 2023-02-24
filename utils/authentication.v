@@ -73,6 +73,7 @@ pub fn (mut app App) send_credentials() {
 		ui.message_box(err.msg())
 		return
 	}
+	
 	//remove null bytes
 	server_response = server_response#[..length]
 	if server_response.len == 0 {
