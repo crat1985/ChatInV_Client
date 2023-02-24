@@ -3,7 +3,11 @@ module utils
 import ui
 
 pub fn (mut app App) send_message(mut it &ui.TextBox) {
-	app.send_encrypted_string(it.text.bytes().bytestr()) or {
+	message := it.text.bytes().bytestr()
+	if message.is_blank() {
+		return
+	}
+	app.send_encrypted_string(message) or {
 		eprintln(err)
 		exit(-1)
 	}
