@@ -73,31 +73,24 @@ pub fn (mut app App) send_credentials() {
 		ui.message_box(err.msg())
 		return
 	}
-	
+
 	//remove null bytes
 	server_response = server_response#[..length]
 	if server_response.len == 0 {
 		eprintln("[ERROR] Bad data received !")
 		return
 	}
-	//converting to string
-	mut data := app.decrypt_string(server_response) or {
-		ui.message_box(err.msg())
+	length = server_response[..5].bytestr().int()
+	server_response = server_response[5..]
+
+	if server_response.len < length {
+		dump("[ERROR] Invalid message, this should never happen, please report it to the developer.")
 		return
 	}
 
-	length = data#[..5].int()
-	if length == 0 {
-		dump("[ERROR] Bad length !")
-		return
-	}
-	data = data#[5..]
-	if data.len == 0 {
-		dump("[ERROR] Bad length !")
-		return
-	}
-	if data.len < length {
-		eprintln("[ERROR] Invalid message, this should never happen, report it to the developer : `$data`")
+	//converting to string
+	mut data := app.decrypt_string(server_response[..length]) or {
+		ui.message_box(err.msg())
 		return
 	}
 
@@ -109,7 +102,7 @@ pub fn (mut app App) send_credentials() {
 		}
 		'0' {
 			//show success message
-			ui.message_box("Success : ${data[1..length]}")
+			ui.message_box("Success : ${data[1..]}")
 
 			uic.hideable_show(app.window, "hchat")
 			uic.hideable_toggle(app.window, "hform")
@@ -125,9 +118,8 @@ pub fn (mut app App) send_credentials() {
 	//showing end of the message
 	data = data#[length..]
 	if data.len > 6 {
-		app.display_messages(data)
+		app.display_messages(mut data.bytes())
 	}
-	
 
 	spawn app.listen_for_messages()
 }

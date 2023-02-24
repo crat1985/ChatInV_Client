@@ -16,47 +16,52 @@ pub fn (mut app App) send_message(mut it &ui.TextBox) {
 }
 
 pub fn (mut app App) send_encrypted_string(data string) !int {
-	return app.socket.write(app.encrypt_string("${data.len:05}$data"))
+	encrypted := app.encrypt_string(data)
+	mut all_data := "${encrypted.len:05}".bytes()
+	all_data << encrypted
+	println(all_data)
+	return app.socket.write(all_data)
 }
 
 pub fn (mut app App) listen_for_messages() {
 	for {
 		mut data := []u8{len: 1024}
 		length := app.socket.read(mut data) or {
-			panic(err)
+			eprintln(err)
+			break
 		}
-		app.display_messages(app.decrypt_string(data[..length]) or {
-			eprint("Couldn't decrypt message : $err")
-			continue
-		})
+		data = data[..length]
+		app.display_messages(mut data)
 		app.messages_box.tv.do_logview()
 	}
 	exit(-1)
 }
 
-pub fn (mut app App) display_messages(message string) {
-	mut msg := message
+pub fn (mut app App) display_messages(mut data []u8) {
 	for {
-		if msg.len < 6 {
-			eprintln("[LOG] Msg received too short : $msg")
+		if data.len < 6 {
+			eprintln("[LOG] Msg received too short : $data")
 			break
 		}
-		length := msg[..5].int()
-		msg = msg[5..]
-		if msg.len < length {
-			eprintln("[LOG] Invalid message : $msg")
+		length := data[..5].bytestr().int()
+		data = data[5..]
+		if data.len < length {
+			eprintln("[LOG] Invalid message : ${data.bytestr()}")
 			break
 		}
-		msg_temp := msg[..length]
+		msg_temp := app.decrypt_string(data[..length]) or {
+			eprintln(err)
+			continue
+		}
 		if msg_temp.is_blank() {
-			msg = msg[length..]
+			data = data[length..]
 			continue
 		}
 		app.messages_box_text += "$msg_temp\n"
 		println(msg_temp)
-		if msg.len == length {
+		if data.len == length {
 			break
 		}
-		msg = msg[length..]
+		data = data[length..]
 	}
 }
