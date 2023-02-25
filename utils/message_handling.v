@@ -19,7 +19,6 @@ pub fn (mut app App) send_encrypted_string(data string) !int {
 	encrypted := app.encrypt_string(data)
 	mut all_data := "${encrypted.len:05}".bytes()
 	all_data << encrypted
-	println(all_data)
 	return app.socket.write(all_data)
 }
 
@@ -45,6 +44,9 @@ pub fn (mut app App) display_messages(mut data []u8) {
 		}
 		length := data[..5].bytestr().int()
 		data = data[5..]
+		if length == 0 {
+			break
+		}
 		if data.len < length {
 			eprintln("[LOG] Invalid message : ${data.bytestr()}")
 			break
