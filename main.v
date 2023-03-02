@@ -11,21 +11,19 @@ fn main() {
 		private_key: libsodium.new_private_key()
 		box: libsodium.Box{}
 		window: 0
-		pseudo_text: ""
+		pseudo_text: ''
 		pseudo_is_error: true
-		password_text: ""
+		password_text: ''
 		password_is_error: true
 		socket: &net.TcpConn{}
-		addr: ""
-		addr_placeholder: "localhost"
-		port: ""
-		port_placeholder: "8888"
-
+		addr: ''
+		addr_placeholder: 'localhost'
+		port: ''
+		port_placeholder: '8888'
 		send_message_textbox: 0
 		send_message_textbox_text: ''
 		messages_box: 0
 		messages_box_text: ''
-
 		mode: utils.Mode.login
 		username_textbox: 0
 		confirm_password_text: ''
@@ -33,21 +31,21 @@ fn main() {
 	}
 
 	app.window = ui.window(
-		title: "Login"
-		bg_color: gx.color_from_string("black")
-		on_init: app.init
+		title: 'Login'
+		bg_color: gx.color_from_string('black')
+		on_init: utils.init
 		width: 300
 		height: 400
 		children: [
 			ui.column(
-				id: "main_col"
+				id: 'main_col'
 				margin_: 16
 				heights: ui.stretch
 				children: [
-					app.build_login_window()
-					app.build_chat_app()
+					app.build_login_window(),
+					app.build_chat_app(),
 				]
-			)
+			),
 		]
 	)
 	ui.run(app.window)
