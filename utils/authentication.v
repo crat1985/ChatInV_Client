@@ -42,8 +42,8 @@ pub fn (mut app App) login_or_register(_ &ui.Button) {
 	app.send_credentials() or { ui.message_box(err.msg()) }
 }
 
-pub fn (mut app App) setup_encryption() ! {
-	public_key := []u8{len: 32}
+fn (mut app App) setup_encryption() ! {
+	mut public_key := []u8{len: 32}
 	// reading server's public key
 	app.socket.read(mut public_key) or { return err }
 	// sending client's public key
@@ -52,7 +52,7 @@ pub fn (mut app App) setup_encryption() ! {
 	app.box = libsodium.new_box(app.private_key, public_key)
 }
 
-pub fn (mut app App) send_credentials() ! {
+fn (mut app App) send_credentials() ! {
 	prefix := match app.mode {
 		.register {
 			'r'

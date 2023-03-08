@@ -27,7 +27,7 @@ fn main() {
 		mode: utils.Mode.login
 		username_textbox: 0
 		confirm_password_text: ''
-		confirm_password_is_error: true
+		confirm_password_is_error: false
 	}
 
 	app.window = ui.window(

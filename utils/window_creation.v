@@ -101,6 +101,8 @@ pub fn (mut app App) register_button_pressed(it &ui.Button) {
 			app.window.get_or_panic[ui.Label]('form_title').text = 'Register'
 			app.window.set_title('Register')
 			uic.hideable_show(app.window, 'confirm_password_textbox')
+			app.confirm_password_is_error = app.password_text != app.confirm_password_text
+				&& !app.password_is_error && app.mode == Mode.register
 		}
 		.register {
 			app.login_or_register(it)
@@ -120,6 +122,7 @@ pub fn (mut app App) login_button_pressed(it &ui.Button) {
 			app.window.get_or_panic[ui.Label]('form_title').text = 'Login'
 			app.window.set_title('Login')
 			uic.hideable_toggle(app.window, 'confirm_password_textbox')
+			app.confirm_password_is_error = false
 		}
 	}
 }
